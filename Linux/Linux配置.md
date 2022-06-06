@@ -131,17 +131,17 @@
 
 ## 1. 配置Yum源
 
-### 配置CentOS7的yum源
+### 1.1 配置CentOS7的yum源
 
 - 查看系统默认Yum源
 
-  ```
+  ```bash
   yum repolist
   ```
 
 - 查看Yum配置文件
 
-  ```
+  ```bash
   cd /etc/yum.repos.d/
   ls
   vi CentOS-Base.repo
@@ -149,39 +149,39 @@
 
 - 备份原文件
 
-  ```
+  ```bash
   mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
   ```
 
 - 配置阿里云的Yum源文件
 
-  ```
+  ```bash
   curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
   ```
 
 - 生成缓存
 
-  ```
+  ```bash
   yum makecache
   ```
 
-### 添加epel Yum源
+### 1.2 添加epel Yum源
 
 - 安装wget
 
-  ```
+  ```bash
   yum install wget
   ```
 
 - 添加epel Yum源
 
-  ```
+  ```bash
   wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
   ```
 
 - 生成缓存
 
-  ```
+  ```bash
   yum makecache
   ```
 
@@ -191,9 +191,11 @@
 
 ## 2. 安装python3.8
 
+### 2.1 在yum源中查询
+
 - 按python关键字查询
 
-  ```
+  ```bash
   yum search python
   ```
 
@@ -203,7 +205,7 @@
 
 - 查看python安装包的详细信息
 
-  ```
+  ```bash
   yum info python3.x86_64
   ```
 
@@ -234,4 +236,207 @@
   >          : Packages containing additional libraries for Python are generally named with
   >          : the "python3-" prefix.
 
-- 去python官网寻找3.8.7版本的python下载链接
+### 2.2 去官网获取
+
+- 去python官网寻找3.8.6版本的python
+
+  下载 [Gzipped source tarball](https://www.python.org/ftp/python/3.8.7/Python-3.8.7.tgz)
+
+  ![image-20220531143334516](Linux配置.assets/image-20220531143334516.png)
+
+### 2.3 在Linux里安装
+
+- 使用xftp将压缩文件迁移至CentOS里
+
+- 解压缩Python-3.8.7.tgz
+
+  ```bash
+  tar -zxvf Python-3.8.7.tgz
+  ```
+
+  
+
+- 安装Python依赖环境
+
+  ```bash
+  yum install gcc zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gcc make libffi-devel -y
+  ```
+
+  
+
+- 解压安装
+
+  安装到目录：/usr/local/python-3.8
+
+  ```bash
+  # 进入Python-3.8.7
+  cd Python-3.8.7
+  
+  # 配置安装位置
+  ./configure prefix=/usr/local/python-3.8
+  
+  # 安装
+  make && make install
+  ```
+
+  
+
+- 查看
+
+  ```bash
+  # 如果最后没提示出错，就代表正确安装了，在/usr/local/目录下就会有python-3.8目录
+  ls /usr/local/python-3.8
+  
+  # 在根目录下删除python安装包
+  rm -rf Python-3.8.7
+  ```
+
+### 2.4 配置环境变量
+
+- (方法一)  添加软连接
+
+  ```bash
+  # 添加python3的软链接 
+  ln -s /usr/local/python-3.8/bin/python3.8 /usr/bin/python3 
+  
+  # 添加 pip3 的软链接 
+  ln -s /usr/local/python-3.8/bin/pip3.8 /usr/bin/pip3
+  ```
+
+  
+
+- （方法二）添加环境变量
+
+  ```bash
+  cd /bin
+  vi /etc/profile
+  
+  # 在profile文件的最后一行添加
+  export PATH=$PATH:/usr/local/python-3.8/bin
+  
+  # 保存退出，重新加载环境变量
+  source /etc/profile
+  ```
+
+  
+
+- 查看
+
+  ```bash
+  [root@localhost bin]# python3
+  Python 3.8.7 (default, May 31 2022, 07:40:22) 
+  [GCC 4.8.5 20150623 (Red Hat 4.8.5-44)] on linux
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>>
+  ```
+
+  
+
+## 3. 安装MySQL
+
+### 3.1 在yum源中查询
+
+```bash
+yum search mysql-community-server
+# 发现没有匹配的安装包，需要去官网找
+```
+
+![image-20220531164235306](Linux配置.assets/image-20220531164235306.png)
+
+
+
+### 3.2 去官网获取
+
+![image-20220531164612006](Linux配置.assets/image-20220531164612006.png)
+
+![image-20220531175126717](Linux配置.assets/image-20220531175126717.png)
+
+- 一共6个安装包
+
+  - server
+
+  - client
+
+  - client-plugins
+
+  - common
+
+  - libs
+
+  - icu-data
+
+    
+
+### 3.3 在Linux里面安装
+
+- 使用xftp将压缩文件迁移至CentOS里
+
+- 卸载并安装
+
+  ```bash
+  # 卸载 mariadb-libs
+  rpm -e mariadb-libs --nodeps
+  
+  # 依次安装
+  rpm -ivh mysql-community-common-8.0.29-1.el7.x86_64.rpm
+  rpm -ivh mysql-community-client-plugins-8.0.29-1.el7.x86_64.rpm
+  rpm -ivh mysql-community-libs-8.0.29-1.el7.x86_64.rpm
+  rpm -ivh mysql-community-client-8.0.29-1.el7.x86_64.rpm
+  yum install net-tools
+  yum install perl
+  rpm -ivh mysql-community-icu-data-files-8.0.29-1.el7.x86_64.rpm
+  rpm -ivh mysql-community-server-8.0.29-1.el7.x86_64.rpm
+  
+  ```
+
+
+
+### 3.4 配置MySQL
+
+- ```bash
+  # 初始化MySQL
+  mysqld --initialize
+  
+  # 修改MySQL的拥有者
+  cd /var/lib
+  chown mysql:mysql mysql -R
+  
+  # 启动MySQL服务
+  systemctl start mysqld.service
+  # 查看启动状态
+  systemctl status mysqld.service
+  # Active: active (running)代表MySQL服务已经启动
+  ● mysqld.service - MySQL Server
+     Loaded: loaded (/usr/lib/systemd/system/mysqld.service; enabled; vendor preset: disabled)
+     Active: active (running) since Tue 2022-05-31 10:30:19 CHOT; 3min 54s ago
+       Docs: man:mysqld(8)
+             http://dev.mysql.com/doc/refman/en/using-systemd.html
+    Process: 29607 ExecStartPre=/usr/bin/mysqld_pre_systemd (code=exited, status=0/SUCCESS)
+   Main PID: 29631 (mysqld)
+     Status: "Server is operational"
+     CGroup: /system.slice/mysqld.service
+             └─29631 /usr/sbin/mysqld
+  
+  
+  # 查看临时密码
+  cd /mysql
+  cat /var/log/mysqld.log
+  >>>>
+  # 找到临时密码
+  2022-05-31T02:22:43.142742Z 6 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: rXi?UmAgt2gl
+  
+  # 登录MySQL,在任意位置都可以
+  mysql -uroot -p
+  rXi?UmAgt2gl
+  
+  # 修改临时密码,在MySQL里面输入
+  ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
+  
+  # 让MySQL服务设置为随着开机一起启动
+  systemctl enable mysqld.service
+  # 让MySQL服务设置为不随着开机一起启动
+  systemctl disable mysqld.service
+  ```
+
+  
+
