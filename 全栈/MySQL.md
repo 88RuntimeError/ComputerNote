@@ -315,3 +315,478 @@ create table emp(
 ## 2.主从复制
 ## 3.分库分表
 ## 4.读写分离
+
+
+
+# 四、Python与MySQL交互
+
+## 4.1 Python操作MySQL步骤
+
+**在pymysql中提供了Connection和Cursor对象来管理操作MySQL**
+
+![image-20220607112709202](MySQL.assets/image-20220607112709202.png)
+
+### **1. 引入pymysql模块**
+
+```python
+from pymysql import *
+```
+
+
+
+### **2. 构造Connection对象**
+
+代表一个与MySQL Server的socket连接，使用connect方法来创建一个连接实例。
+
+创建对象，调用connect()方法:
+
+```python
+conn = connect(参数列表)
+```
+
+- 参数host：连接的mysql主机，如果本机是'localhost'
+- 参数port：连接的mysql主机的端口，默认是3306
+- 参数database(db)：数据库的名称
+- 参数user：连接的用户名
+- 参数password(passwd)：连接的密码
+- 参数charset：通信采用的编码方式，推荐使用utf8
+
+**Connection对象常用的API:**
+
+| API             | 说明                         |
+| --------------- | ---------------------------- |
+| connect()       | 创建一个数据库连接实例       |
+| close()         | 发送一个退出消息，并关闭连接 |
+| commit()        | 提交修改至数据库             |
+| cursor()        | 创建一个cursor(游标)实例     |
+| ping()          | 检测服务器是否在运行         |
+| rollback()      | 回滚当前事务                 |
+| select_db(db)   | 设置当前db                   |
+| show_warnings() | 显示警告信息                 |
+
+### 3. 构造Cursor对象
+
+代表一个与MySQL数据库交互对象，使用Connection.Cursor()在当前socket连接上的交互对象。
+
+游标（Cursor）是处理数据的一种方法，为了查看或者处理结果集中的数据，游标提供了在结果集中一次一行或者多行前进或向后浏览数据的能力。可以把游标当作一个指针，它可以指定结果中的任何位置，然后允许用户对指定位置的数据进行处理
+通俗来说就是，操作数据和获取数据库结果都要通过游标来操作。
+
+![image-20220607113024342](MySQL.assets/image-20220607113024342.png)
+
+
+
+**Cursor对象常用API：**
+
+| API           | 说明                       |
+| ------------- | -------------------------- |
+| close()       | 关闭当前cursor             |
+| execute()     | 执行一个sql语句            |
+| executemany() | 执行批量sql语句            |
+| fetchall()    | 取所有数据                 |
+| fetchmany()   | 取多条数据，指定取数据条数 |
+| fetchone()    | 取一条数据                 |
+
+### 4. Python操作MySQL步骤代码
+
+```python
+#1 导入pymysql库
+from pymysql import *
+
+#2 创建数据库连接
+conn = Connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+
+print(conn)
+
+#3 创建游标
+cur = conn.cursor()
+
+#4 执行sql语句和数据处理
+pass
+
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+- 执行结果
+
+  ![image-20220607113206285](MySQL.assets/image-20220607113206285.png)
+
+  看到以上运行结果，说明Connection对象创建成功，数据库已经连接成功！
+
+## 4.2 sql语句注入
+
+**什么是sql注入**
+
+用户提交带有恶意的数据与SQL语句进行字符串方式的拼接，从而影响了SQL语句的语义，最终产生数据泄露或数据的篡改的现象。
+
+
+
+**如何防止sql注入-sql语句参数化**
+
+参数化查询是指在设计与数据库链接并访问数据时，在需要填入数值或数据的地方，使用参数 (Parameter) 来给值，这个方法目前已被视为最有效可预防SQL注入攻击的防御方式。
+
+
+
+```python
+#1 导入pymysql包
+from pymysql import *
+
+#2 创建数据连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行sql语句和数据处理
+sname = input('请输入用户名：')
+passwd = input('请输入密码：')
+#有sql注入漏洞的sql语句
+#sql = "select * from t_student where sname='%s' and passwd='%s'"%(sname,passwd)
+#print(sql)
+#select * from t_student where sname='test' or 1=1 #' and passwd='dsafdsa'
+#为防止sql注入，我们对sql语句进行参数化
+sql = "select * from t_student where sname=%s and passwd=%s"
+params = (sname,passwd)
+
+rowcount = cur.execute(sql,params)
+
+if rowcount != 0:
+    print("登录成功！")
+else:
+    print("登录失败！")
+
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+
+
+## 4.3 增加数据
+
+### 4.3.1 增加单条数据
+
+```python
+#1  导入pymsql包
+from pymysql import *
+
+#2 创建数据库连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行 sql语句
+#编写sql语句
+try:
+    sql = "insert into t_student values (%s,%s,%s,%s,%s,%s,%s,%s)"
+    params = (7,"肖小军","123456",'男',21,"2020-07-15","大数据班","123456@126.com")
+    #执行sql语句
+    cur.execute(sql,params)
+    conn.commit()
+except:
+    conn.rollback()
+
+print("数据增加成功!")
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+运行结果
+
+![image-20220607113419982](MySQL.assets/image-20220607113419982.png)
+
+
+
+### 4.3.2 增加多条数据
+
+```python
+#1  导入pymsql包
+from pymysql import *
+
+#2 创建数据库连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行 sql语句
+#编写sql语句
+try:
+    sql = "insert into t_student values (%s,%s,%s,%s,%s,%s,%s,%s)"
+    params = [(7,"王辉1","123456",'男',24,"2020-09-15","Python全栈班","123456@126.com"),
+              (7, "王辉2", "123456", '男', 24, "2020-09-15", "Python全栈班", "123456@126.com"),
+              (7, "王辉3", "123456", '男', 24, "2020-09-15", "Python全栈班", "123456@126.com")
+              ]
+    #执行sql语句
+    cur.executemany(sql,params)
+    conn.commit()
+except:
+    conn.rollback()
+
+print("数据增加成功!")
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+运行结果
+
+![image-20220607113512768](MySQL.assets/image-20220607113512768.png)
+
+
+
+## 4.4 删除数据
+
+```python
+#1  导入pymsql包
+from pymysql import *
+
+#2 创建数据库连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+print(conn)
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行 sql语句
+#编写sql语句
+try:
+    sql = "delete from t_student where sno=%s"
+    params = (7)
+    #执行sql语句
+    rowcount = cur.execute(sql,params)
+    conn.commit()
+except:
+    conn.rollback()
+
+print("已删除"+str(rowcount)+"条数据!")
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+运行结果
+
+![image-20220607113546063](MySQL.assets/image-20220607113546063.png)
+
+
+
+## 4.5 修改数据
+
+```python
+#1  导入pymsql包
+from pymysql import *
+
+#2 创建数据库连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+print(conn)
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行 sql语句
+#编写sql语句
+try:
+    # 删除和修改操作一定要限定条件，不然将影响其他数据，甚至误删或修改整个数据库
+    sql = "update t_student set sname=%s where sno=%s"
+    params = ('李敏',8)
+    #执行sql语句
+    rowcount = cur.execute(sql,params)
+    conn.commit()
+except:
+    conn.rollback()
+
+print("已修改"+str(rowcount)+"条数据!")
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+运行结果
+
+![image-20220607113620572](MySQL.assets/image-20220607113620572.png)
+
+
+
+## 4.6 查询数据
+
+```python
+#1  导入pymsql包
+from pymysql import *
+
+#2 创建数据库连接
+conn = connect(host='localhost',port=3306,user='root',password='root',db='mytestdb',charset='utf8')
+
+#3 打开游标
+cur = conn.cursor()
+
+#4 执行 sql语句
+#编写sql语句
+# 查询数据时，为了节约内存，不要用*,而应该指定具体要取的字段，另外要指定查询条件
+sql = "select sno,sname,sex,age,classname from t_student where age>%s"
+params = (20)
+#执行sql语句
+cur.execute(sql,params)
+
+# result=cur.fetchone()  #取一条数据
+# print(result)
+
+#result=cur.fetchmany(3)  #取指定多条数据
+result=cur.fetchall()  #取所有数据
+#打印输出执行结果
+for row in result:
+    print(row)
+
+#5 关闭游标
+cur.close()
+
+#6 关闭连接
+conn.close()
+```
+
+
+
+### 4.7 数据库封装操作
+
+观察前面的文件发现，除了sql语句及参数不同，其它语句都是一样的
+
+这样造成了很多重复代码，我们可以把数据库常用操作封装为一个类，以便代码可以重复使用
+
+- **创建MysqlHelper.py文件，定义类**
+
+  ```python
+  from pymysql import *
+  
+  class MysqlHelper(object):
+      #数据库连接参数，可以定义多个，比如conn_params1，conn_params2，用于连接多个数据库，在类实例化时指定
+      conn_params1 = {'host': 'localhost', 'port': 3306, 'user': 'root', 'passwd': 'root', 'db': 'mytestdb',
+                      'charset': 'utf8'}
+  
+      #类的构造函数，主要用于类的初始化
+      def __init__(self, conn_params):
+          self.__host = conn_params['host']
+          self.__port = conn_params['port']
+          self.__db = conn_params['db']
+          self.__user = conn_params['user']
+          self.__passwd = conn_params['passwd']
+          self.__charset = conn_params['charset']
+  
+      #建立数据库连接和打开游标
+      def __connect(self):
+          self.__conn = connect(host=self.__host, port=self.__port, db=self.__db, user=self.__user, passwd=self.__passwd,
+                              charset=self.__charset)
+          self.__cursor = self.__conn.cursor()
+  
+      #关闭游标和关闭连接
+      def __close(self):
+          self.__cursor.close()
+          self.__conn.close()
+  
+      #取一条数据
+      def get_one(self, sql, params):
+          result = None
+          try:
+              self.__connect()
+              self.__cursor.execute(sql, params)
+              result = self.__cursor.fetchone()
+              self.__close()
+          except Exception as e:
+              print(e)
+          return result
+  
+      #取所有数据
+      def get_all(self, sql, params):
+          lst = ()
+          try:
+              self.__connect()
+              self.__cursor.execute(sql, params)
+              lst = self.__cursor.fetchall()
+              self.__close()
+          except Exception as e:
+              print(e)
+          return lst
+  
+      #增加数据
+      def insert(self, sql, params):
+          return self.__edit(sql, params)
+  
+      #修改数据
+      def update(self, sql, params):
+          return self.__edit(sql, params)
+  
+      #删除数据
+      def delete(self, sql, params):
+          return self.__edit(sql, params)
+  
+      #写数据操作具体实现，增删改操作都是调用这个方法来实现，这是个私有方法，不允许类外部调用
+      def __edit(self, sql, params):
+          count = 0
+          try:
+              self.__connect()
+              count = self.__cursor.execute(sql, params)
+              self.__conn.commit()
+              self.__close()
+          except Exception as e:
+              print(e)
+          return count
+  ```
+
+  
+
+- **MysqlHelper类的调用**
+
+  ```python
+  from MysqlHelper import *
+  
+  # 数据库查询
+  '''
+  mysqlhelper = MysqlHelper(MysqlHelper.conn_params1)
+  sql = "select sno,sname,sex,age,classname from t_student where age>%s"
+  params = (20)
+  result = mysqlhelper.get_all(sql, params)
+  
+  # 打印输出执行结果
+  for row in result:
+      print(row)'''
+  
+  
+  #增加数据
+  '''
+  mysqlhelper = MysqlHelper(MysqlHelper.conn_params1)
+  sql = "insert into t_student values (%s,%s,%s,%s,%s,%s,%s,%s)"
+  params = (11,"王五","123456",'男',24,"2020-09-15","python全栈班","123456@126.com")
+  rowcount = mysqlhelper.insert(sql, params)
+  print("已增加"+str(rowcount)+"条数据")'''
+  
+  
+  #删除数据
+  '''
+  mysqlhelper = MysqlHelper(MysqlHelper.conn_params1)
+  sql = "delete from t_student where sno=%s"
+  params = (11)
+  rowcount = mysqlhelper.delete(sql, params)
+  print("已删除"+str(rowcount)+"条数据")'''
+  
+  #修改数据
+  '''
+  mysqlhelper = MysqlHelper(MysqlHelper.conn_params1)
+  sql = "update t_student set classname=%s where sno=%s"
+  params = ('大数据班',9)
+  rowcount = mysqlhelper.update(sql, params)
+  print("已修改"+str(rowcount)+"条数据")'''
+  ```
+
+  
