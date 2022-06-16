@@ -96,21 +96,21 @@
 
 #### 2.2.1 数据库操作
 
-##### 查询
+##### 1. 查询
 
 - **查询所有数据库：**`show databases;`
 - **查看当前所在数据库：**`select database();`
 
-##### 创建
+##### 2. 创建
 
 - **创建数据库：**`create database [if not exists] 数据库名 [default charset 字符集] [collate 排序规则];`
 - **创建数据库案例：**`creat database test default charset utf8mb4;`
 
-##### 删除
+##### 3. 删除
 
 - **删除指定数据库：**`drop database [if exists] 数据库名;`
 
-##### 使用
+##### 4. 使用
 
 - **选择指定数据库：**`use 数据库名`
 
@@ -118,13 +118,13 @@
 
 #### 2.2.2 表操作
 
-##### 查询
+##### 1. 查询
 
 - **查询当前数据库中所有的表：**`show tables;`
 - **查询表的结构：**`desc 表名;`
 - **查询指定表的建表语句：**`show create table 表名;`
 
-##### 创建
+##### 2. 创建
 
 - 语法
 
@@ -152,7 +152,7 @@ create table emp(
 ) comment '员工信息表';
 ```
 
-##### 修改
+##### 3. 修改
 
 ```
 +-----------+------------------+------+-----+---------+-------+
@@ -193,7 +193,7 @@ create table emp(
 +----------+------------------+------+-----+---------+-------+
 ```
 
-##### 删除
+##### 4. 删除
 
 - **删除表：**`drop table [if exists] 表名;`
   - 案例：`drop table if exists emp;`
@@ -204,7 +204,7 @@ create table emp(
 
 ### 2.3 DML：数据操作语言
 
-#### 添加
+#### 1. 添加
 
 - **给指定字段添加数据：**
 
@@ -238,7 +238,7 @@ create table emp(
   - 字符串和日期型数据赢包含在引号中
   - 插入的数据大小，应该在字段的规定范围内
 
-#### 更新
+#### 2. 更新
 
 - **修改数据：**`update 表名 set 字段名1=值1, 字段名2=值2, [WHERE 条件];`
   - 案例1：`update employee set name='张三三' where id=1;`
@@ -246,7 +246,7 @@ create table emp(
   - 案例3：`update employee set workno='1';`
 - **注意：**修改语句的条件可以有，也可以没有，如果没有条件，则会修改整张表的所有数据
 
-#### 删除
+#### 3. 删除
 
 - **删除数据：**`delete from 表名 [where 条件];`
 
@@ -256,47 +256,359 @@ create table emp(
   
 
 - **注意：**
+  
   - delete语句的条件可以有，也可以没有，如果没有条件，则会删除整张表的所有数据
   - delete语句不能删除某一个字段的值(可以使用update)
 
 ### 2.4 DQL：数据查询语言
 
+```mysql
+SELECT
+	字段列表
+FROM
+	表名列表
+WHERE
+	条件列表
+GROUP BY
+	分组字段列表
+HAVING
+	分组后条件列表
+ORDER BY
+	排序字段列表
+LIMIT
+	分页参数
+```
+
 #### 2.4.1 基础查询
 
-##### 查询多个字段
+##### 1. 查询多个字段
 
 - `select 字段1,字段2,字段3,... from 表名;`
   - `selcet id,name,workaddress,age,gender from emp;`
 - `select * from 表名;`
 
-##### 设置别名
+##### 2. 设置别名
 
 - `select 字段1 as 别名1, 字段2 as 别名2, ... from 表名;`
   - `select workaddress as '工作地址' from emp;`
   - `select workaddress '工作地址' from emp;`
 
-##### 去除重复记录
+##### 3. 查询字段(不要重复)
 
 - `select distinct 字段列表 from 表名;`
   - `select distinct workaddress '工作地址' from emp;`
 
 #### 2.4.2 条件查询
 
+##### 1. 语法
 
+- `select 字段列表 from 表名 条件列表;`
+
+##### 2. 条件
+
+| 比较运算符          | 功能                             |
+| ------------------- | -------------------------------- |
+| >                   | 大于                             |
+| >=                  | 大于等于                         |
+| <                   | 小于                             |
+| <=                  | 小于等于                         |
+| =                   | 等于                             |
+| <> 或 !=            | 不等于                           |
+| between ... and ... | 在某个范围之内(含最小、最大值)   |
+| in(...)             | 在in之后的列表中的值，多选一     |
+| like 占位符         | 模糊匹配(_单个字符，%任意个字符) |
+| is NULL             | 是NULL                           |
+
+| 逻辑运算符  | 功能 |
+| ----------- | ---- |
+| and 或 &&   | 并且 |
+| or 或  \|\| | 或者 |
+| not 或  !   | 非   |
+
+##### 3. 示例
+
+```mysql
+-- 查询年龄等于88的员工信息
+select * from emp where age=88;
+
+-- 查询年龄小于20的员工信息
+select * from emp where age<20;
+
+-- 查询年龄小于等于20的员工信息
+select * from emp where age<=20;
+
+-- 查询身份证号缺失的员工信息
+select * from emp where idcard is null;
+
+-- 查询身份证号存在的员工信息
+select * from emp where idcard is not null;
+
+-- 查询年龄不等于88的员工信息
+select * from emp where age != 88;
+select * from emp where age <> 88;
+
+-- 查询年龄在15岁(包含)到20岁(包含)之间的员工信息
+select * from emp where age>=15 and age<=20;
+select * from emp where age>=15 && age<=20;
+select * from emp where age between 15 and 20;
+
+-- 查询 性别为女 且 年龄小于25 的员工信息
+selcet * from emp where gender='女' and age<25;
+
+-- 查询 年龄等于18 或20 或40 的员工信息
+select * from emp where age=18 or age=20 or age=40;
+select * from emp where age in(18,20,40);
+
+-- 查询姓名为两个字的员工信息
+select * from emp where name like '__';
+
+-- 查询身份证号最后一位是X的员工信息
+select * from emp where name like '%X';
+```
 
 #### 2.4.3 聚合函数
 
+- 将一列数据作为一个整体，进行纵向计算
+
+##### 1.常见的聚合函数
+
+| 函数  | 功能     |
+| ----- | -------- |
+| count | 统计数量 |
+| max   | 最大值   |
+| min   | 最小值   |
+| avg   | 平均值   |
+| sum   | 求和     |
+
+##### 2.示例
+
+```mysql
+-- 所有的null值，不参与聚合函数的运算
+
+-- 统计企业员工的总数量
+select count(*) from emp;
+select count(idcard) from emp; 
+
+-- 统计企业员工的平均年龄
+select avg(age) from emp;
+
+-- 统计企业员工的最大年龄
+select max(age) from emp;
+
+-- 统计企业员工的最小年龄
+select min(age) from emp;
+
+-- 统计西安地区员工的年龄之和
+select sum(age) from emp where workaddress='西安';
+```
+
 #### 2.4.4 分组查询
+
+##### 1. 语法
+
+`select 字段列表 from 表名 [where 条件] group by 分组字段名 [having 分组后过滤条件];`
+
+- where与having的区别
+  - 执行时机不同：where是分组之前进行过滤，不满足where条件，不参与分组；having是分组之后对结果进行过滤
+  - 判断条件不同：where不能对聚合函数进行判断，而having可以
+
+##### 2. 示例
+
+```mysql
+-- 根据性别分组，统计 男性员工 和 女性员工 的数量
+select gender,count(*) from emp group by gender;
+
+-- 根据性别分组，统计 男性员工 和 女性员工 的平均年龄
+select gender,avg(age) from emp group by gender;
+
+-- 查询年龄小于45的员工，并根据工作地址分组，获取员工数量大于等于3的工作地址
+select workaddress,count(*) from emp where age<45 group by workaddress having count(*)>=3;
+select workaddress,count(*) address_count from emp where age<45 group by workaddress having address_count>=3;
+```
+
+##### 5. 注意
+
+- 执行顺序：where > 聚合函数 > having
+- 分组之后，查询的字段一般为聚合函数和分组字段，查询其他字段无任何意义
 
 #### 2.4.5 排序查询
 
+##### 1. 语法
+
+`select 字段列表 from 表名 order by 字段1 排序方式1, 字段2 排序方式2;`
+
+- 排序方式
+  - ASC：升序(默认值)
+  - DESC：降序
+
+- 注意：如果是多字段排序，当第一个字段值相同时，才会根据第二个字段进行排序
+
+##### 2. 示例
+
+```mysql
+-- 根据年龄，对员工进行升序排序
+select * from emp order by age;
+select * from emp order by age asc;
+
+-- 根据入职时间，对员工进行降序排序
+select * from emp order by entrydate desc;
+
+-- 根据年龄，对公司的员工进行生序排序，年龄相同，再按照入职时间进行降序排序
+select * from emp order by age asc, entrydate desc;
+```
+
 #### 2.4.6 分页查询
+
+##### 1. 语法
+
+`select 字段列表 from 表名 limit 起始索引,查询记录数;`
+
+- 注意：
+  - 起始索引从0开始，起始索引= (查询页码-1) * 每页显示记录数
+  - 分页查询是数据库的方言，不同的数据库有不同的实现，MySQL中是limit
+  - 如果查询的是第一页数据，起始索引可以省略，直接简写为limit 10
+
+##### 2. 示例
+
+```mysql
+-- 查询第1页员工数据，每页展示10条记录
+select * from emp limit 10;
+select * from emp limit 0,10;
+
+-- 查询第2页员工数据，每页展示10条记录
+select * from emp limit 10,10;
+```
 
 #### 2.4.7 案例练习
 
+**需求：**
+
+1. 查询年龄为20,21,22,23岁的女性员工信息
+2. 查询性别为男，并且年龄在20-40岁(含)以内的姓名为三个字的员工
+3. 统计员工表中，年龄小于60岁的，男性员工和女性员工的人数
+4. 查询所有年龄小于等于35岁员工的姓名和年龄，并对查询结果按年龄升序排序，如果年龄相同按入职时间降序排序
+5. 查询性别为男，且年龄在20-40岁(含)以内的前五个员工信息，对查询的结果按年龄升序排序，年龄相同按入职时间升序排序
+
+**代码**
+
+```mysql
+-- 查询年龄为20,21,22,23岁的女性员工信息
+select * from emp where gender='女' and age in(20,21,22,23);
+
+-- 查询性别为男，并且年龄在20-40岁(含)以内的姓名为三个字的员工
+select * from emp where gender='男' and age between 20 and 40 and name like '___';
+select * from emp where gender='男' and (age between 20 and 40) and name like '___';
+
+-- 统计员工表中，年龄小于60岁的，男性员工和女性员工的人数
+select gender,count(*) from emp where age<60 group by gender;
+
+-- 查询所有年龄小于等于35岁员工的姓名和年龄，并对查询结果按年龄升序排序，如果年龄相同按入职时间降序排序
+select name,age from emp where age<=35 order by age asc, entrydate desc;
+
+-- 查询性别为男，且年龄在20-40岁(含)以内的前五个员工信息，对查询的结果按年龄升序排序，年龄相同按入职时间升序排序
+select * from emp where gender='男' and (age between 20 and 40) order by age asc, entrydate asc limit 5;
+```
+
+#### 2.4.8 执行顺序
+
+![image-20220615181553155](MySQL.assets/image-20220615181553155.png)
 
 
-### 2.5 DCL：数据控制语言
+
+### 2.5 DCL：数据控制语言    
+
+#### 2.5.1 管理用户
+
+##### 1. 查询用户
+
+```mysql
+use mysql;
+select * from user;
+```
+
+##### 2. 创建用户
+
+```mysql
+create user '用户名'@'主机名' identified by '密码';
+```
+
+##### 3. 修改用户密码
+
+```mysql
+alter user '用户名'@'主机名' identified with mysql_native_password by '新密码';
+```
+
+##### 4. 删除用户
+
+```mysql
+drop user '用户名'@'主机名';
+```
+
+##### 5. 示例
+
+```mysql
+-- 创建用户ssl0，只能够在当前主机localhost访问，密码123456
+create user 'ssl0'@'localhost' identified by '123456';
+
+-- 创建用户ssl，在任意主机上都能访问该数据库，密码123456
+create user 'ssl'@'%' identified by '123456';
+
+-- 修改用户ssl的访问密码为1234
+alter user 'ssl'@'%' identified with mysql_native_password by '1234'
+
+-- 删除用户ssl0@localhost用户
+drop user 'ssl0'@'localhost';
+```
+
+#### 2.5.2 权限控制
+
+**常用权限**
+
+| 权限                | 说明               |
+| ------------------- | ------------------ |
+| all, all privileges | 所有权限           |
+| select              | 查询数据           |
+| insert              | 插入数据           |
+| update              | 修改数据           |
+| delete              | 删除数据           |
+| alter               | 修改表             |
+| drop                | 删除数据库/表/视图 |
+| create              | 创建数据库/表      |
+
+##### 1. 查询权限
+
+```mysql
+show grants for '用户名'@'主机名';
+```
+
+##### 2. 授予权限
+
+```mysql
+grant 权限列表 on 数据库名.表名 to '用户名'@'主机名';
+```
+
+##### 3. 撤销权限
+
+```mysql
+revoke 权限列表 on 数据库名.表名 from '用户名'@'主机名';
+```
+
+##### 4. 示例
+
+```mysql
+-- 查询 ssl@% 的权限
+show grants for 'ssl'@'%';
+
+-- 授予 ssl@% 在mytest库中所有的权限
+grant all on mytest.* to 'ssl'@'%';
+
+-- 撤销 ssl@% 在mytest库中所有的权限
+revoke all on mytest.* from 'ssl'@'%';
+```
+
+- 注意：
+  - 多个权限之间，使用逗号分隔
+  - 授权时，数据库名和表名可以使用 * 进行通配，代表所有
 
 ## 3.函数
 ## 4.约束
