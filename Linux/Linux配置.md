@@ -1,14 +1,14 @@
 # 一、Linux网络配置
 
-## 1.CentOS 7 NAT模式
+## 1.1 CentOS 7 网络配置
 
-### 1.1 确保虚拟机设置中，网络适配器使用NAT 模式
+### 1.CentOS 7 NAT模式
+
+#### 1.1 确保虚拟机设置中，网络适配器使用NAT 模式
 
 ![image-20220505205105619](Linux配置.assets/image-20220505205105619.png)
 
-
-
-### 1.2 设置虚拟机的虚拟网络编辑器
+#### 1.2 设置虚拟机的虚拟网络编辑器
 
 - 打开网络编辑器
 
@@ -24,7 +24,7 @@
 
   
 
-### 1.3 打开CentOS，输入root和密码
+#### 1.3 打开CentOS，输入root和密码
 
 - 找到  ifcfg-en*** 文件（文件名不一定，但都是以  ifcfg-en  开头的，具体的可以通过  ll  查看）
 
@@ -49,9 +49,7 @@
 
     ![image-20220520164111212](Linux配置.assets/image-20220520164111212.png)
 
-
-
-### 1.4 重新启动网络设置
+#### 1.4 重新启动网络设置
 
 - 输入 `systemctl restart network.service` 重新启动网络设置
 - 输入 `ping www.baidu.com` 检查网络是否配置成功
@@ -59,9 +57,7 @@
 
 ![image-20220520165527269](Linux配置.assets/image-20220520165527269.png)
 
-
-
-### 1.5 关闭防火墙
+#### 1.5 关闭防火墙
 
 - 本次开机状态下，关闭防火墙（下次开机防火墙又会开启）
 
@@ -71,7 +67,7 @@
 
   `systemctl disable firewalld`
 
-### 1.6 连接 xshell和xftp
+#### 1.6 连接 xshell和xftp
 
 破解版下载地址1：http://xshell.cephp.cn/
 
@@ -81,9 +77,7 @@
 
   ![image-20220520173002794](Linux配置.assets/image-20220520173002794.png)
 
-
-
-### xshell
+###### xshell
 
 - 打开xshell，用户身份验证
 
@@ -105,9 +99,7 @@
 
     ![image-20220520173402716](Linux配置.assets/image-20220520173402716.png)
 
-
-
-### xftp
+###### xftp
 
 - 打开xshell，点击“新建文件传输”
 
@@ -117,21 +109,69 @@
 
   ![image-20220520173803304](Linux配置.assets/image-20220520173803304.png)
 
-## 2. CentOS 7 桥接模式
+
+
+### 2. CentOS 7 桥接模式
 
 
 
 
 
-## 3. Ubuntu
+## 1.2 Ubuntu 网络配置
+
+### 1. Ubuntu22.04 NAT模式
+
+#### 1.1 配置Ubuntu的yaml
+
+`sudo vi /etc/netplan/01-network-manager-all.yaml`
+
+```bash
+sudo vi /etc/netplan/01-network-manager-all.yaml
+
+# Let NetworkManager manage all devices on this system
+network:
+  version: 2
+  renderer: NetworkManager
+  
+
+```
+
+- 添加相关信息
+
+```bash
+# Let NetworkManager manage all devices on this system
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+		ens33:
+			dhcp4: no
+			dhcp6: no
+			addresses:
+				- 192.168.0.10/24
+			routes:
+				- to: default
+				  via: 192.168.0.1
+			nameservers:
+				addresses:
+					- 114.114.114.114
+					- 8.8.8.8
+	version: 2
+	renderer: networkd
+https://blog.csdn.net/qq_36393978/article/details/124868232?spm=1001.2101.3001.6650.1&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1-124868232-blog-124736956.pc_relevant_downloadblacklistv1&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7Edefault-1-124868232-blog-124736956.pc_relevant_downloadblacklistv1&utm_relevant_index=2
+```
+
+
 
 
 
 # 二、Linux软件安装与配置
 
-## 1. 配置Yum源
+## 2.1 CentOS 7
 
-### 1.1 配置CentOS7的yum源
+### 1. 配置Yum源
+
+#### 1.1 配置CentOS7的yum源
 
 - 查看系统默认Yum源
 
@@ -165,7 +205,7 @@
   yum makecache
   ```
 
-### 1.2 添加epel Yum源
+#### 1.2 添加epel Yum源
 
 - 安装wget
 
@@ -187,11 +227,9 @@
 
 
 
+### 2. 安装python3.8
 
-
-## 2. 安装python3.8
-
-### 2.1 在yum源中查询
+#### 2.1 在yum源中查询
 
 - 按python关键字查询
 
@@ -236,7 +274,7 @@
   >          : Packages containing additional libraries for Python are generally named with
   >          : the "python3-" prefix.
 
-### 2.2 去官网获取
+#### 2.2 去官网获取
 
 - 去python官网寻找3.8.6版本的python
 
@@ -244,7 +282,7 @@
 
   ![image-20220531143334516](Linux配置.assets/image-20220531143334516.png)
 
-### 2.3 在Linux里安装
+#### 2.3 在Linux里安装
 
 - 使用xftp将压缩文件迁移至CentOS里
 
@@ -291,7 +329,7 @@
   rm -rf Python-3.8.7
   ```
 
-### 2.4 配置环境变量
+#### 2.4 配置环境变量
 
 - (方法一)  添加软连接
 
@@ -332,9 +370,9 @@
 
   
 
-## 3. 安装MySQL
+### 3. 安装MySQL
 
-### 3.1 在yum源中查询
+#### 3.1 在yum源中查询
 
 ```bash
 yum search mysql-community-server
@@ -343,9 +381,7 @@ yum search mysql-community-server
 
 ![image-20220531164235306](Linux配置.assets/image-20220531164235306.png)
 
-
-
-### 3.2 去官网获取
+#### 3.2 去官网获取
 
 ![image-20220531164612006](Linux配置.assets/image-20220531164612006.png)
 
@@ -367,7 +403,7 @@ yum search mysql-community-server
 
     
 
-### 3.3 在Linux里面安装
+#### 3.3 在Linux里面安装
 
 - 使用xftp将压缩文件迁移至CentOS里
 
@@ -391,7 +427,7 @@ yum search mysql-community-server
 
 
 
-### 3.4 配置MySQL
+#### 3.4 配置MySQL
 
 - ```bash
   # 初始化MySQL

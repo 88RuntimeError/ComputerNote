@@ -34,7 +34,7 @@
 
 
 ## 2. SQL
-### 2.1 SQL基础语法
+### 2.1 SQL基础语法介绍
 >1.SQL语句可以单行或多行书写，以分号结尾。
 >2.SQL语句可以使用空格/缩进来增强语句的可读性
 >3.MySQL数据库的SQL语句不区分大小写，关键字建议使用大写
@@ -604,13 +604,190 @@ grant all on mytest.* to 'ssl'@'%';
 
 -- 撤销 ssl@% 在mytest库中所有的权限
 revoke all on mytest.* from 'ssl'@'%';
+
+-- 授予 ssl@% 所有权限
+grant all on *.* to 'ssl'@'%';
 ```
 
 - 注意：
   - 多个权限之间，使用逗号分隔
+  
   - 授权时，数据库名和表名可以使用 * 进行通配，代表所有
+  
+    
 
 ## 3.函数
+
+### 3.1 字符串函数
+
+####  3.1.1 常见函数
+
+| 函数                       | 功能                                                      |
+| -------------------------- | --------------------------------------------------------- |
+| concat(S1, S2, ..., Sn)    | 字符串拼接，将S1, S2, ..., Sn拼接成一个字符串             |
+| lower(str)                 | 将字符串str全部转为小写                                   |
+| upper(str)                 | 将字符串str全部转为大写                                   |
+| lpad(str, n, pad)          | 左填充，用字符串pad对str的左边进行填充，达到n个字符串长度 |
+| rpad(str, n, pad)          | 右填充，用字符串pad对str的右边进行填充，达到n个字符串长度 |
+| trim(str)                  | 去掉字符串头部和尾部的空格                                |
+| substring(str, start, len) | 返回字符串str从start位置起的len个长度的字符串             |
+
+
+
+#### 3.1.2 示例
+
+```mysql
+-- 字符串拼接 concat
+select concat('Hello', 'MySQL');
+
+-- 转小写 lower
+select lower('Hello');
+
+-- 转大写 upper
+select upper('Hello');
+
+-- 左填充 lpad
+select lpad('01', 5, '-');
+
+-- 右填充 rpad
+select rpad('01', 5, '-');
+
+-- 去两端的空格 trim
+select trim(' Hello MySQL ');
+
+-- 字符串截取 substring
+select substring('Hello MySQL', 1, 5);
+
+
+-- 案例：由于业务需求变更，企业员工的工号统一为5位数，目前不足5位数的全部在前面补0，比如：1号员工应该为00001
+update emp set worno = lpad(workno, 5, 0);
+```
+
+
+
+### 3.2 数值函数
+
+#### 3.2.1 常见函数
+
+| 函数       | 功能                               |
+| ---------- | ---------------------------------- |
+| ceil(x)    | 向上取整                           |
+| floor(x)   | 向下取整                           |
+| mod(x,y)   | 返回 x/y 的模                      |
+| rand( )    | 返回0~1内的随机数                  |
+| round(x,y) | 求参数x的四舍五入的值，保留y位小数 |
+
+#### 3.2.2 示例
+
+```mysql
+-- 向上取整 ceil
+select ceil(1.1);
+
+-- 向下取整 floor
+select floor(1.9);
+
+-- 取模 mod
+select mod(7,4);
+
+-- 求0~1之间的随机数 rand
+select rand();
+
+-- 四舍五入 round
+select round(2.345, 2);
+
+-- 案例：通过数据库的函数，生成一个六位数的随机验证码
+select lpad(round(rand()*1000000, 0), 6, '0');
+```
+
+
+
+### 3.3 日期函数
+
+#### 3.3.1 常见函数
+
+| 函数                               | 功能                                               |
+| ---------------------------------- | -------------------------------------------------- |
+| curdate( )                         | 返回当前日期                                       |
+| curtime( )                         | 返回当前时间                                       |
+| now( )                             | 返回当前日期和时间                                 |
+| year(date)                         | 获取指定date的年份                                 |
+| month(date)                        | 获取指定date的月份                                 |
+| day(date)                          | 获取指定date的日期                                 |
+| date_add(date, INTERVAL expr type) | 返回一个日期/时间值加上一个时间间隔exper后的时间值 |
+| datediff(date1,date2)              | 返回起始时间date1和结束时间date2之间的天数         |
+
+#### 3.3.2 示例
+
+```mysql
+-- 返回当前日期 curdate
+select curdate();
+
+-- 返回当前时间 curtime
+select curtime();
+
+-- 返回当前日期和时间
+select now();
+
+-- 获取指定date的年份 year
+select year(now());
+
+-- 获取指定date的月份 month
+select month(now());
+
+-- 获取指定date的日期 day
+select day(now());
+
+-- 加上一个时间间隔exper date_add
+select date_add(now(), INTERVAL 70 DAY);
+select date_add(now(), INTERVAL 70 MONTH);
+select date_add(now(), INTERVAL 70 YEAR);
+
+-- 间隔天数 datediff(第一个时间减去第二个时间)
+select datediff('2021-12-01, 2022-6-30');
+
+
+-- 案例：查询所有员工的入职天数，并根据入职天数倒序排序
+select name, datediff(curdate(), entrydate) as 'entrydays' from emp order by entrydays desc;
+```
+
+### 3.4 流程函数
+
+#### 3.4.1 常见函数
+
+| 函数                                                       | 功能                                                      |
+| ---------------------------------------------------------- | --------------------------------------------------------- |
+| if(value, t, f)                                            | 如果value为true，则返回t，否则返回f                       |
+| ifnull(value1, vaule2)                                     | 如果value1不为空，返回value1，否则返回value2              |
+| case when [val1] then [res1] ... else [default] end        | 如果val1为true，返回res1，... 否则返回default默认值       |
+| case [expr] when [val1] then [res1] ... else [default] end | 如果expr的值等于val1，返回res1，... 否则返回default默认值 |
+
+#### 3.4.2 示例
+
+```mysql
+-- 流程控制函数
+-- if
+select if(false, 'Ok', 'Error');
+
+-- ifnull
+select ifnull('Ok', 'Default');
+select ifnull('', 'Default');
+select ifnull(null, 'Default');
+
+-- case when then else end
+-- 需求：查询emp表的员工、姓名和工作地址(上海/北京 ---> 一线城市， 其他 ---> 二线城市)
+select
+	name,
+	( case workaddress when '北京' then '一线城市' when '上海' then '一线城市' else '二线城市' end ) as '工作地址'
+from emp;
+
+-- 案例：统计班级各个学员的成绩，展示的规则如下：
+-- >=85：优秀
+-- >=60：及格
+-- 否则：不及格
+```
+
+
+
 ## 4.约束
 ## 5.多表查询
 ## 6.事物
@@ -665,7 +842,7 @@ conn = connect(参数列表)
 
 **Connection对象常用的API:**
 
-| API             | 说明                         |
+| lAPI            | 说明                         |
 | --------------- | ---------------------------- |
 | connect()       | 创建一个数据库连接实例       |
 | close()         | 发送一个退出消息，并关闭连接 |
@@ -971,7 +1148,7 @@ conn.close()
 
 
 
-### 4.7 数据库封装操作
+## 4.7 数据库封装操作
 
 观察前面的文件发现，除了sql语句及参数不同，其它语句都是一样的
 
