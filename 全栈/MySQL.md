@@ -784,11 +784,90 @@ from emp;
 -- >=85：优秀
 -- >=60：及格
 -- 否则：不及格
+select
+	id,
+	name,
+	(case when math>=85 then '优秀' when math>=60 then '及格' else '不及格' end) '数学',
+	(case when english>=85 then '优秀' when math>=60 then '及格' else '不及格' end) '英语',
+	(case when chinese>=85 then '优秀' when math>=60 then '及格' else '不及格' end) '语文'
+from score;
 ```
 
 
 
 ## 4.约束
+
+### 4.1 约束的概述
+
+**概念：**约束是作用于表中字段上的规则，用于限制存储在表中的数据
+
+**目的：**保证数据库中数据的正确、有效性和完整性
+
+**分类：**
+
+| 约束     | 描述                                                     | 关键字      |
+| -------- | -------------------------------------------------------- | ----------- |
+| 非空约束 | 限制该字段的数据不能为null                               | NOT NULL    |
+| 唯一约束 | 保证该字段的所有数据都是唯一的、不重复的                 | UNIQUE      |
+| 主键约束 | 主键是一行数据的唯一标识，要求非空且唯一                 | PRIMARY KEY |
+| 默认约束 | 保存数据时，如果未指定该字段的值，则采用默认值           | DEFAULT     |
+| 检查约束 | 保证字段值满足一个条件                                   | CHECK       |
+| 外键约束 | 用来让两张表的数据之间建立连接，保证数据的一致性和完整性 | FOREIGN KEY |
+
+### 4.2 约束的演示
+
+- **需求**
+
+| 字段名 | 字段含义   | 字段类型    | 约束条件                  | 约束关键字                  |
+| ------ | ---------- | ----------- | ------------------------- | --------------------------- |
+| id     | ID唯一标识 | int         | 主键，并且自动增长        | PRIMARY KEY, AUTO_INCREMENT |
+| name   | 姓名       | varchar(10) | 不为空，并且唯一          | NOT NULL , UNIQUE           |
+| age    | 年龄       | int         | 大于0，并且小于等于120    | CHECK                       |
+| status | 状态       | char(1)     | 如果没有指定该值，默认为1 | DEFAULT                     |
+| gender | 性别       | char(1)     | 无                        | 无                          |
+
+- **表结构**
+
+```mysql
+create table user(
+	id int primary key auto_increment comment '主键',
+    name varchar(10) not null unique comment '姓名',
+    age int check (age>0 and age<=120) comment '年龄',
+    status char(1) default '1' comment '状态',
+    gender char(1) comment '性别'
+) comment '用户表';
+```
+
+### 4.3 外键约束
+
+**概念：**外键用来让两张表的数据之间建立连接，从而保证数据的一致性和完整性
+
+![image-20220624214005537](MySQL.assets/image-20220624214005537.png)
+
+```mysql
+-- 准备数据
+create table dept(
+	id int auto_increment comment 'ID' primary key,
+    name varchar(50) not null comment '部门名称'
+) comment '部门表';
+insert into dept (id, name) values (1, '研发部'), (2, '市场部'), (3, '财务部'), (4, '销售部'), (5, '总经办');
+
+create table emp(
+	id int auto_increment comment 'ID' primary key,
+    name varchar(50) not null comment '姓名',
+    age int comment '年龄',
+    job varchar(20) comment '职位',
+    salary int comment '薪资',
+    entrydate date comment '入职时间',
+    managerid int comment '直属领导ID',
+    dept_id int comment '部门ID'
+) comment '员工表';
+insert into emp(id, name, age, job, salary, entrydate, managerid, dept_id) values (1, '金庸', 66, '总裁', 20000, '2000-01-01', null, 5), (2, '张无忌', 20, '项目经理', 12500, '2005-12-05', 1,1)
+
+```
+
+
+
 ## 5.多表查询
 ## 6.事物
 # 二、进阶篇
