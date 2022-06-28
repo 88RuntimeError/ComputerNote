@@ -844,6 +844,8 @@ create table user(
 
 ![image-20220624214005537](MySQL.assets/image-20220624214005537.png)
 
+- 无外键关联情况
+
 ```mysql
 -- 准备数据
 create table dept(
@@ -862,8 +864,61 @@ create table emp(
     managerid int comment '直属领导ID',
     dept_id int comment '部门ID'
 ) comment '员工表';
-insert into emp(id, name, age, job, salary, entrydate, managerid, dept_id) values (1, '金庸', 66, '总裁', 20000, '2000-01-01', null, 5), (2, '张无忌', 20, '项目经理', 12500, '2005-12-05', 1,1)
+insert into emp(id, name, age, job, salary, entrydate, managerid, dept_id) 
+values 
+(1, '金庸', 66, '总裁', 20000, '2000-01-01', null, 5), 
+(2, '张无忌', 20, '项目经理', 12500, '2005-12-05', 1, 1),
+(3, '杨逍', 33, '开发', 8400, '2000-11-03', 2, 1),
+(4, '韦一笑', 48, '开发', 11000, 2002-02-05, 2, 1),
+(5, '常玉春', 43, '开发', 10500, 2004-09-07, 3, 1),
+(6, '小昭', 19, '程序员鼓励师', 6600, 2004-10-12, 2, 1)
 
+```
+
+- 添加外键关联
+
+```mysql
+-- 方法一：在创建表的时候添加外键关联
+-- 语法
+create table 表名(
+	字段名 数据类型,
+    ...
+    [constraint] [外键名称] foreign key (外键字段名) references 主表(主表列名)
+);
+
+-- 方法二：表结构创建好后，额外增加外键关联
+-- 语法
+alter table 表名 add constraint 外键名称 foreign key (外键字段名) references 主表(主表列名);
+-- 示例
+alter table emp add constraint fk_emp_dept_id foreign key (dept_id) references dept(id);
+```
+
+- 删除外键
+
+```mysql
+-- 语法
+alter table 表名 drop foreign key 外键名称;
+
+-- 示例
+alter table emp drop foreign key fk_emp_dept_id;
+```
+
+### 4.4 删除和更新行为
+
+| 行为        | 说明                                                         |
+| ----------- | ------------------------------------------------------------ |
+| no action   | 当在父表中删除/更新对应记录时，首先检查该记录是否有对应外键，如果有则不允许删除/更新。(与restrict一致) |
+| restrict    | 当在父表中删除/更新对应记录时，首先检查该记录是否有对应外键，如果有则不允许删除/更新。(与no action一致) |
+| cascade     | 当在父表中删除/更新对应记录时，首先检查该记录是否有对应外键，如果有则也删除/更新外键在子表中的记录 |
+| set null    | 当在父表中删除/更新对应记录时，首先检查该记录是否有对应外键，如果有则设置子表中该外键值为null(这要求该外键允许取null) |
+| set default | 父表有变更时，子表将外键列设置成一个默认的值(Innodb不支持)   |
+
+```mysql
+-- 语法(在设置外键时添加)
+alter table 表名 add constraint 外键名称 foreign key (外键字段) references 主表名(主表字段名) on update cascade on delete cascade;
+-- 示例
+alter table emp add constraint fk_emp_dept_id foreign key (dept_id) references dept(id) on update cascade on delete cascade;
+alter table emp add constraint fk_emp_dept_id foreign key (dept_id) references dept(id) on update set null on delete set null;
 ```
 
 
